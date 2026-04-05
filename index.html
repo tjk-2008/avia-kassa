@@ -14,7 +14,6 @@
       transition: background-color 0.25s ease, color 0.2s ease, border-color 0.2s;
     }
 
-    /* ГЛАВНЫЙ КОНТЕЙНЕР — ЦЕНТРИРОВАНИЕ ПО ВЕРТИКАЛИ И ГОРИЗОНТАЛИ */
     body {
       min-height: 100vh;
       display: flex;
@@ -23,7 +22,6 @@
       padding: 2rem 1.5rem;
     }
 
-    /* СВЕТЛАЯ ТЕМА (по умолчанию) */
     body.light-theme {
       background: linear-gradient(135deg, #e9eef4 0%, #cddae9 100%);
     }
@@ -48,7 +46,6 @@
       color: #1a3f66;
     }
 
-    /* ТЕМНАЯ ТЕМА */
     body.dark-theme {
       background: linear-gradient(145deg, #111b26 0%, #07111c 100%);
     }
@@ -115,7 +112,6 @@
       border-color: rgba(255,255,255,0.2);
     }
 
-    /* ПЕРЕКЛЮЧАТЕЛЬ ТЕМЫ (фиксирован, но не мешает центрированию) */
     .theme-toggle {
       position: fixed;
       top: 24px;
@@ -138,7 +134,6 @@
       font-size: 1.2rem;
     }
 
-    /* КАРТОЧКА — ОСНОВНОЙ ЭЛЕМЕНТ, ЦЕНТРИРОВАН */
     .card {
       max-width: 1020px;
       width: 100%;
@@ -147,7 +142,6 @@
       margin: 0 auto;
     }
 
-    /* ХЕДЕР */
     .header {
       background: linear-gradient(112deg, #0b2b5c 0%, #1f4e8c 100%);
       padding: 28px 34px;
@@ -239,7 +233,6 @@
       font-weight: 500;
     }
 
-    /* ОСНОВНАЯ ФОРМА */
     .form-section {
       padding: 36px 34px 40px;
     }
@@ -262,7 +255,6 @@
       font-size: 1.3rem;
     }
 
-    /* быстрые города */
     .quick-cities {
       display: flex;
       flex-wrap: wrap;
@@ -527,7 +519,6 @@
   </style>
 </head>
 <body class="light-theme">
-  <!-- Переключатель темы -->
   <div class="theme-toggle" id="themeToggle">
     <i class="fas fa-sun"></i>
     <span style="color: white; font-size: 1rem;">🌙</span>
@@ -563,7 +554,6 @@
         <span>Заявка на авиабилеты</span>
       </div>
 
-      <!-- Быстрые города -->
       <div class="quick-cities">
         <span class="city-btn" data-city="Москва (SVO)">Москва</span>
         <span class="city-btn" data-city="Санкт-Петербург (LED)">Питер</span>
@@ -583,11 +573,11 @@
         <div class="route-grid">
           <div class="input-card">
             <i class="fas fa-map-marker-alt"></i>
-            <input type="text" id="fromCity" placeholder="Откуда" value="Москва (SVO)">
+            <input type="text" id="fromCity" placeholder="Откуда" value="Москва (SVO)" data-default="Москва (SVO)">
           </div>
           <div class="input-card">
             <i class="fas fa-location-dot"></i>
-            <input type="text" id="toCity" placeholder="Куда" value="Санкт-Петербург (LED)">
+            <input type="text" id="toCity" placeholder="Куда" value="Санкт-Петербург (LED)" data-default="Санкт-Петербург (LED)">
           </div>
         </div>
 
@@ -602,7 +592,6 @@
           </div>
         </div>
 
-        <!-- Класс перелета -->
         <div class="class-row">
           <div class="class-field">
             <i class="fas fa-crown"></i>
@@ -646,7 +635,6 @@
           </div>
         </div>
 
-        <!-- ПОЛЕ ДЛЯ ТЕЛЕФОНА -->
         <div class="phone-row">
           <div class="phone-field">
             <i class="fas fa-mobile-alt"></i>
@@ -668,10 +656,9 @@
   </div>
 
   <script>
-    // ========== GOOGLE APPS SCRIPT URL ==========
     const scriptUrl = 'https://script.google.com/macros/s/AKfycbwzk11WBJIkbFchZjcZQVSNwvl__dh9M6VQyAZggIEVC6FuWO7CheLqsrSEHbahLS6pIg/exec';
 
-    // ========== ТЕМНАЯ / СВЕТЛАЯ ТЕМА ==========
+    // ========== ТЕМА ==========
     const themeToggle = document.getElementById('themeToggle');
     const bodyEl = document.body;
 
@@ -687,16 +674,54 @@
       }
     });
 
-    // ========== БЫСТРЫЕ ГОРОДА (умное заполнение) ==========
-    const cityBtns = document.querySelectorAll('.city-btn');
+    // ========== АВТОМАТИЧЕСКОЕ ОЧИЩЕНИЕ ПРИ ВВОДЕ (ФИКС!) ==========
     const fromInput = document.getElementById('fromCity');
     const toInput = document.getElementById('toCity');
+
+    // Сохраняем значения по умолчанию
+    const fromDefault = fromInput.value;
+    const toDefault = toInput.value;
+
+    // Функция для очистки поля, если там значение по умолчанию
+    function clearIfDefault(input, defaultValue) {
+      if (input.value === defaultValue) {
+        input.value = '';
+      }
+    }
+
+    // Функция для восстановления значения по умолчанию, если поле пустое
+    function restoreIfEmpty(input, defaultValue) {
+      if (input.value.trim() === '') {
+        input.value = defaultValue;
+      }
+    }
+
+    // Обработчик для поля "Откуда"
+    fromInput.addEventListener('focus', function() {
+      clearIfDefault(fromInput, fromDefault);
+    });
+
+    fromInput.addEventListener('blur', function() {
+      restoreIfEmpty(fromInput, fromDefault);
+    });
+
+    // Обработчик для поля "Куда"
+    toInput.addEventListener('focus', function() {
+      clearIfDefault(toInput, toDefault);
+    });
+
+    toInput.addEventListener('blur', function() {
+      restoreIfEmpty(toInput, toDefault);
+    });
+
+    // ========== БЫСТРЫЕ ГОРОДА ==========
+    const cityBtns = document.querySelectorAll('.city-btn');
 
     cityBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const cityValue = btn.getAttribute('data-city');
-        // Логика: если поле "Откуда" имеет стандартное значение (Москва) либо пустое, меняем "Откуда"
-        if (fromInput.value === 'Москва (SVO)' || fromInput.value === '') {
+        // Если поле "Откуда" имеет стандартное значение (Москва) или пустое, меняем "Откуда"
+        if (fromInput.value === fromDefault || fromInput.value === '') {
           fromInput.value = cityValue;
         } else {
           // иначе меняем "Куда"
@@ -705,7 +730,7 @@
       });
     });
 
-    // ========== ФОРМАТИРОВАНИЕ ТЕЛЕФОНА (российский стиль) ==========
+    // ========== ФОРМАТИРОВАНИЕ ТЕЛЕФОНА ==========
     const phoneField = document.getElementById('clientPhone');
 
     function formatRussianPhone(value) {
@@ -762,9 +787,9 @@
     }
     oneway.addEventListener('click', () => setTripType(false));
     round.addEventListener('click', () => setTripType(true));
-    setTripType(false); // начальное состояние: только туда
+    setTripType(false);
 
-    // ========== ОТПРАВКА В GOOGLE APPS SCRIPT ==========
+    // ========== ОТПРАВКА ==========
     const submitButton = document.getElementById('submitBtn');
 
     function formatDateForDisplay(dateStr) {
@@ -776,7 +801,6 @@
     submitButton.addEventListener('click', async () => {
       const rawPhone = phoneField.value;
       const phoneDigits = rawPhone.replace(/\D/g, '');
-      // проверка: должно быть 11 цифр (включая 7 в начале)
       if (phoneDigits.length < 11) {
         alert('📞 Укажите полный номер телефона: 10 цифр после +7 (например +7 980 118 27 42)');
         return;
@@ -792,9 +816,8 @@
       const childrenVal = document.getElementById('children').value || '0';
       const infantsVal = document.getElementById('infants').value || '0';
 
-      // проверка: хотя бы один пассажир
       if (parseInt(adultsVal) === 0 && parseInt(childrenVal) === 0 && parseInt(infantsVal) === 0) {
-        alert('⚠️ Добавьте хотя бы одного пассажира (взрослый, ребенок или младенец)');
+        alert('⚠️ Добавьте хотя бы одного пассажира');
         return;
       }
 
@@ -815,7 +838,6 @@
       submitButton.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Отправка...';
 
       try {
-        // режим no-cors — мы не можем прочитать ответ, но запрос уходит
         await fetch(scriptUrl, {
           method: 'POST',
           mode: 'no-cors',
@@ -823,17 +845,16 @@
           body: JSON.stringify(formPayload)
         });
         alert('✅ Заявка успешно отправлена!\nМенеджер свяжется с вами по номеру ' + rawPhone);
-        // опционально: сброс или очистка? оставим как есть.
       } catch (error) {
         console.error(error);
-        alert('❌ Ошибка отправки. Пожалуйста, напишите нам в Telegram или WhatsApp, мы поможем.');
+        alert('❌ Ошибка отправки. Пожалуйста, напишите нам в Telegram или WhatsApp.');
       } finally {
         submitButton.disabled = false;
         submitButton.innerHTML = '<i class="fas fa-paper-plane"></i> Отправить заявку';
       }
     });
 
-    // ========== КОНТАКТНЫЕ КЛИКИ (социальные кнопки) ==========
+    // ========== КОНТАКТЫ ==========
     document.getElementById('phoneBlock').addEventListener('click', () => {
       alert('📞 Свяжитесь с нами: +7 (980) 118-27-42');
     });
